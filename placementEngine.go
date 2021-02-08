@@ -73,7 +73,7 @@ func scoreWorstFit(fIndex int, fairnessDataList []FairnessData, availableReource
 
 func fairnessPlacement(fairnessDataList []FairnessData, availableReourcePerNode []ResourceCapacity, clusterCPU float64, clusterMem float64) ([]FairnessData) {
 	remainingReourcePerNode := availableReourcePerNode
-	fmt.Printf("In DRF, remainingReourcePerNode = %v\n", remainingReourcePerNode)
+	// fmt.Printf("In DRF, remainingReourcePerNode = %v\n", remainingReourcePerNode)
 	fmt.Printf("In DRF, availableReourcePerNode = %v\n", availableReourcePerNode)
 	fmt.Printf("In DRF, fairnessDataList = %v\n", fairnessDataList)
 	for i, _ := range fairnessDataList { // set the desiredCPU, desiredMem, and remainingPodCount
@@ -88,7 +88,7 @@ func fairnessPlacement(fairnessDataList []FairnessData, availableReourcePerNode 
 			break
 		}
 		domainShare := make([]float64, num)
-		fmt.Printf("[For-loop] remainingReourcePerNode = %v\n", remainingReourcePerNode)
+		// fmt.Printf("[For-loop] remainingReourcePerNode = %v\n", remainingReourcePerNode)
 		// fmt.Printf("[For-loop] availableReourcePerNode = %v\n", availableReourcePerNode)
 		for i, _ := range fairnessDataList {
 			if fairnessDataList[i].remainingPodCount > 0 {
@@ -104,7 +104,7 @@ func fairnessPlacement(fairnessDataList []FairnessData, availableReourcePerNode 
 		// fmt.Printf("In DRF, domainShare = %v\n", domainShare)
 		// time.Sleep(1 * time.Second) 
 		_, funcIndex := MinFloatSlice(domainShare)
-		fmt.Printf("In DRF, funcIndex = %v\n", funcIndex)
+		// fmt.Printf("In DRF, funcIndex = %v\n", funcIndex)
 		nodeScore, nodeIndex := scoreWorstFit(funcIndex, fairnessDataList, availableReourcePerNode, remainingReourcePerNode)
 		// fmt.Printf("In DRF, nodeScore = %f, nodeIndex = %d\n", nodeScore, nodeIndex)
 		if nodeScore == -1 {
@@ -162,8 +162,109 @@ func main() {
 	 *			Func-2: 5 Pods, <1, 5> per Pod
 	 *			Func-3: 1 Pod, <1, 1> per Pod
 	 */
-	var clusterCPUAvailable float64 = 31
-	var clusterMemAvailable float64 = 31
+	// var clusterCPUAvailable float64 = 31
+	// var clusterMemAvailable float64 = 31
+	// availableReourcePerNode := []ResourceCapacity{
+	// 	ResourceCapacity{
+	// 		25,
+	// 		6,
+	// 	},
+	// 	ResourceCapacity{
+	// 		6,
+	// 		25,
+	// 	},
+	// }
+	// fairnessDataList := []FairnessData{
+	// 	FairnessData{ // Func-1
+	// 		desiredPodCountSLO: 5, // int32
+	// 		// desiredPodCountFair: 0, // int32
+	// 		podCPUUsage: 5.0, // float64 // resource usage per pod
+	// 		// desiredCPU: 0.0, // float64 // desired resource of this function
+	// 		allocatedCPUFair: 0.0, // float64 // fairly allocated resource of this function
+	// 		podMemUsage: 1.0, // float64
+	// 		// desiredMem: 0.0, // float64
+	// 		allocatedMemFair: 0.0, // float64
+	// 		// placementDecision []int
+	// 	},
+	// 	FairnessData{ // Func-2
+	// 		desiredPodCountSLO: 5, // int32
+	// 		// desiredPodCountFair: 0, // int32
+	// 		podCPUUsage: 1.0, // float64 // resource usage per pod
+	// 		// desiredCPU: 0.0, // float64 // desired resource of this function
+	// 		allocatedCPUFair: 0.0, // float64 // fairly allocated resource of this function
+	// 		podMemUsage: 5.0, // float64
+	// 		// desiredMem: 0.0, // float64
+	// 		allocatedMemFair: 0.0, // float64
+	// 		// placementDecision []int
+	// 	},
+	// 	FairnessData{ // Func-3
+	// 		desiredPodCountSLO: 1, // int32
+	// 		// desiredPodCountFair: 0, // int32
+	// 		podCPUUsage: 1.0, // float64 // resource usage per pod
+	// 		// desiredCPU: 0.0, // float64 // desired resource of this function
+	// 		allocatedCPUFair: 0.0, // float64 // fairly allocated resource of this function
+	// 		podMemUsage: 1.0, // float64
+	// 		// desiredMem: 0.0, // float64
+	// 		allocatedMemFair: 0.0, // float64
+	// 		// placementDecision []int
+	// 	},
+	// }
+	
+	/* Simulation Configuration-2:
+	 * 2 Nodes: 
+	 *			Node-1: <25 CPU, 10 MEM>
+	 *			Node-2: <10 CPU, 25 MEM>
+	 * 3 Funcs:
+	 *			Func-1: 6 Pods, <5, 1> per Pod
+	 *			Func-2: 5 Pods, <1, 5> per Pod
+	 */
+	// var clusterCPUAvailable float64 = 35
+	// var clusterMemAvailable float64 = 35
+	// availableReourcePerNode := []ResourceCapacity{
+	// 	ResourceCapacity{
+	// 		25,
+	// 		10,
+	// 	},
+	// 	ResourceCapacity{
+	// 		10,
+	// 		25,
+	// 	},
+	// }
+	// fairnessDataList := []FairnessData{
+	// 	FairnessData{ // Func-1
+	// 		desiredPodCountSLO: 6, // int32
+	// 		// desiredPodCountFair: 0, // int32
+	// 		podCPUUsage: 5.0, // float64 // resource usage per pod
+	// 		// desiredCPU: 0.0, // float64 // desired resource of this function
+	// 		allocatedCPUFair: 0.0, // float64 // fairly allocated resource of this function
+	// 		podMemUsage: 1.0, // float64
+	// 		// desiredMem: 0.0, // float64
+	// 		allocatedMemFair: 0.0, // float64
+	// 		// placementDecision []int
+	// 	},
+	// 	FairnessData{ // Func-2
+	// 		desiredPodCountSLO: 5, // int32
+	// 		// desiredPodCountFair: 0, // int32
+	// 		podCPUUsage: 1.0, // float64 // resource usage per pod
+	// 		// desiredCPU: 0.0, // float64 // desired resource of this function
+	// 		allocatedCPUFair: 0.0, // float64 // fairly allocated resource of this function
+	// 		podMemUsage: 5.0, // float64
+	// 		// desiredMem: 0.0, // float64
+	// 		allocatedMemFair: 0.0, // float64
+	// 		// placementDecision []int
+	// 	},
+	// }
+
+	/* Simulation Configuration-3:
+	 * 2 Nodes: 
+	 *			Node-1: <25 CPU, 6 MEM>
+	 *			Node-2: <6 CPU, 25 MEM>
+	 * 3 Funcs:
+	 *			Func-1: 6 Pods, <5, 1> per Pod
+	 *			Func-2: 5 Pods, <1, 5> per Pod
+	 */
+	var clusterCPUAvailable float64 = 35
+	var clusterMemAvailable float64 = 35
 	availableReourcePerNode := []ResourceCapacity{
 		ResourceCapacity{
 			25,
@@ -176,7 +277,7 @@ func main() {
 	}
 	fairnessDataList := []FairnessData{
 		FairnessData{ // Func-1
-			desiredPodCountSLO: 5, // int32
+			desiredPodCountSLO: 6, // int32
 			// desiredPodCountFair: 0, // int32
 			podCPUUsage: 5.0, // float64 // resource usage per pod
 			// desiredCPU: 0.0, // float64 // desired resource of this function
@@ -193,17 +294,6 @@ func main() {
 			// desiredCPU: 0.0, // float64 // desired resource of this function
 			allocatedCPUFair: 0.0, // float64 // fairly allocated resource of this function
 			podMemUsage: 5.0, // float64
-			// desiredMem: 0.0, // float64
-			allocatedMemFair: 0.0, // float64
-			// placementDecision []int
-		},
-		FairnessData{ // Func-3
-			desiredPodCountSLO: 1, // int32
-			// desiredPodCountFair: 0, // int32
-			podCPUUsage: 1.0, // float64 // resource usage per pod
-			// desiredCPU: 0.0, // float64 // desired resource of this function
-			allocatedCPUFair: 0.0, // float64 // fairly allocated resource of this function
-			podMemUsage: 1.0, // float64
 			// desiredMem: 0.0, // float64
 			allocatedMemFair: 0.0, // float64
 			// placementDecision []int
