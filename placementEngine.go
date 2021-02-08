@@ -84,14 +84,19 @@ func fairnessPlacement(fairnessDataList []FairnessData, availableReourcePerNode 
 	num := len(fairnessDataList) // Number of Functions
 	var placementCompleted int = 0
 	for { // max-min allocation
+		if placementCompleted == num {
+			break
+		}
 		domainShare := make([]float64, num)
-		// fmt.Printf("[For-loop] remainingReourcePerNode = %v\n", remainingReourcePerNode)
+		fmt.Printf("[For-loop] remainingReourcePerNode = %v\n", remainingReourcePerNode)
 		// fmt.Printf("[For-loop] availableReourcePerNode = %v\n", availableReourcePerNode)
 		for i, _ := range fairnessDataList {
 			if fairnessDataList[i].remainingPodCount > 0 {
 				CPUShare := fairnessDataList[i].allocatedCPUFair / clusterCPU
 				MemShare := fairnessDataList[i].allocatedMemFair / clusterMem
 				domainShare[i] = math.Max(CPUShare, MemShare)
+			} else {
+				domainShare[i] = math.Inf(1)
 			}
 			// fmt.Printf("fairnessDataList[%v].allocatedCPUFair = %v\n", i, fairnessDataList[i].allocatedCPUFair)
 			// fairnessDataList[i].desiredPodCountFair = 2
@@ -99,25 +104,29 @@ func fairnessPlacement(fairnessDataList []FairnessData, availableReourcePerNode 
 		// fmt.Printf("In DRF, domainShare = %v\n", domainShare)
 		// time.Sleep(1 * time.Second) 
 		_, funcIndex := MinFloatSlice(domainShare)
+		fmt.Printf("In DRF, funcIndex = %v\n", funcIndex)
 		nodeScore, nodeIndex := scoreWorstFit(funcIndex, fairnessDataList, availableReourcePerNode, remainingReourcePerNode)
 		// fmt.Printf("In DRF, nodeScore = %f, nodeIndex = %d\n", nodeScore, nodeIndex)
 		if nodeScore == -1 {
 			fairnessDataList[funcIndex].remainingPodCount = 0
 			placementCompleted++
+			continue
 		}
 		// fmt.Printf("In DRF, placementCompleted = %v\n", placementCompleted)
-		if placementCompleted == num {
-			break
-		}
 
 		fairnessDataList[funcIndex].allocatedCPUFair += fairnessDataList[funcIndex].podCPUUsage
 		fairnessDataList[funcIndex].allocatedMemFair += fairnessDataList[funcIndex].podMemUsage
+		fairnessDataList[funcIndex].remainingPodCount -= 1 
 		fairnessDataList[funcIndex].placementDecision = append(fairnessDataList[funcIndex].placementDecision, nodeIndex)
+		if fairnessDataList[funcIndex].remainingPodCount == 0 {
+			placementCompleted++
+		}
 
 		remainingReourcePerNode[nodeIndex].CPUCapacity -= fairnessDataList[funcIndex].podCPUUsage
 		remainingReourcePerNode[nodeIndex].MemCapacity -= fairnessDataList[funcIndex].podMemUsage
 
 	}
+	fmt.Printf("[For-loop] remainingReourcePerNode = %v\n", remainingReourcePerNode)
 	for i, _ := range fairnessDataList { // set the desiredPodCountFair
 		fairnessDataList[i].desiredPodCountFair = int32(math.Ceil(fairnessDataList[i].allocatedCPUFair / fairnessDataList[i].podCPUUsage))
 	}
