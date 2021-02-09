@@ -20,7 +20,7 @@ type FairnessData struct {
 	allocatedMemFair float64
 	placementDecision []int
 	remainingPodCount int32
-	// functionName string
+	functionName string
 }
 
 type ResourceCapacity struct {
@@ -69,6 +69,46 @@ func scoreWorstFit(fIndex int, fairnessDataList []FairnessData, availableReource
 	}
 	// fmt.Printf("In scoreWorstFit, nodeScore = %v\n", nodeScore)
 	return MaxFloatSlice(nodeScore)
+}
+
+func maxMinCalculation(fairnessDataList []FairnessData, clusterCPUAvailable float64, clusterMemAvailable float64) ([]float64) {
+	remainingFunctions := len(fairnessDataList)
+	for i, _ := range fairnessDataList { // set the desiredCPU, desiredMem, and remainingPodCount
+		fairnessDataList[i].desiredCPU = fairnessDataList[i].podCPUUsage * float64(fairnessDataList[i].desiredPodCountSLO)
+		fairnessDataList[i].desiredMem = fairnessDataList[i].podMemUsage * float64(fairnessDataList[i].desiredPodCountSLO)
+		fairnessDataList[i].remainingPodCount = fairnessDataList[i].desiredPodCountSLO
+		fairnessDataList[i].allocatedCPUFair = 0
+		fairnessDataList[i].allocatedMemFair = 0
+		fairnessDataList[i].desiredPodCountFair = 0
+	}
+	remainingCPU := clusterCPUAvailable
+	for ; remainingFunctions > 0; {
+		if remainingCPU == 0 {
+			break
+		}
+		// fmt.Printf("In maxMinCalculation, remainingFunctions = %v\n", remainingFunctions)
+		// fmt.Printf("In maxMinCalculation, remainingCPU = %v\n", remainingCPU)
+		fairShareCPU := remainingCPU / float64(remainingFunctions)
+		for i, _ := range fairnessDataList {
+			if fairnessDataList[i].remainingPodCount > 0 {
+				if fairnessDataList[i].desiredCPU <= fairShareCPU {
+					fairnessDataList[i].remainingPodCount = 0
+					fairnessDataList[i].allocatedCPUFair += fairnessDataList[i].desiredCPU
+					// remainingCPU += fairShareCPU - fairnessDataList[i].desiredCPU
+					remainingCPU -= fairnessDataList[i].desiredCPU
+					remainingFunctions --
+				} else {
+					fairnessDataList[i].allocatedCPUFair += fairShareCPU
+					remainingCPU -= fairShareCPU
+				}
+			}
+		} 
+	}
+	maxMinValue := make([]float64, 0)
+	for i, _ := range fairnessDataList {
+		maxMinValue = append(maxMinValue, fairnessDataList[i].allocatedCPUFair)
+	}
+	return maxMinValue
 }
 
 func fairnessPlacement(fairnessDataList []FairnessData, availableReourcePerNode []ResourceCapacity, clusterCPU float64, clusterMem float64) ([]FairnessData) {
@@ -285,47 +325,55 @@ func main() {
 		// desiredMem: 0.0, // float64
 		allocatedMemFair: 0.0, // float64
 		// placementDecision []int
+		functionName: "fairnessData_1",
 	}
 	fairnessData_2 := FairnessData{ // Func-2
 		desiredPodCountSLO: 5, // int32
 		// desiredPodCountFair: 0, // int32
-		podCPUUsage: 3.0, // float64 // resource usage per pod
+		podCPUUsage: 1.0, // float64 // resource usage per pod
 		// desiredCPU: 0.0, // float64 // desired resource of this function
 		allocatedCPUFair: 0.0, // float64 // fairly allocated resource of this function
-		podMemUsage: 2.0, // float64
+		podMemUsage: 5.0, // float64
 		// desiredMem: 0.0, // float64
 		allocatedMemFair: 0.0, // float64
 		// placementDecision []int
+		functionName: "fairnessData_2",
 	}
 	fairnessData_3 := FairnessData{ // Func-3
-		desiredPodCountSLO: 10, // int32
+		desiredPodCountSLO: 5, // int32
 		// desiredPodCountFair: 0, // int32
-		podCPUUsage: 4.0, // float64 // resource usage per pod
+		podCPUUsage: 5.0, // float64 // resource usage per pod
 		// desiredCPU: 0.0, // float64 // desired resource of this function
 		allocatedCPUFair: 0.0, // float64 // fairly allocated resource of this function
 		podMemUsage: 1.0, // float64
 		// desiredMem: 0.0, // float64
 		allocatedMemFair: 0.0, // float64
 		// placementDecision []int
+		functionName: "fairnessData_3",
 	}
 	fairnessData_4 := FairnessData{ // Func-4
-			desiredPodCountSLO: 2, // int32
-			// desiredPodCountFair: 0, // int32
-			podCPUUsage: 1.0, // float64 // resource usage per pod
-			// desiredCPU: 0.0, // float64 // desired resource of this function
-			allocatedCPUFair: 0.0, // float64 // fairly allocated resource of this function
-			podMemUsage: 2.0, // float64
-			// desiredMem: 0.0, // float64
-			allocatedMemFair: 0.0, // float64
-			// placementDecision []int
+		desiredPodCountSLO: 2, // int32
+		// desiredPodCountFair: 0, // int32
+		podCPUUsage: 1.0, // float64 // resource usage per pod
+		// desiredCPU: 0.0, // float64 // desired resource of this function
+		allocatedCPUFair: 0.0, // float64 // fairly allocated resource of this function
+		podMemUsage: 1.0, // float64
+		// desiredMem: 0.0, // float64
+		allocatedMemFair: 0.0, // float64
+		// placementDecision []int
+		functionName: "fairnessData_4",
 	}
 
 	// Collect over time
 	// var fairnessDataList []FairnessData
 	proportionalFairCPU := make([]float64, 0)
 	cpuShare := make([]float64, 0)
+	cpuShareList := [][]float64{cpuShare, cpuShare, cpuShare, cpuShare}
+	maxMinShare := make([]float64, 0)
+	maxMinShareList := [][]float64{maxMinShare, maxMinShare, maxMinShare, maxMinShare}
 	for clk := 0; clk < 30; clk++ {
 		fairnessDataList := make([]FairnessData, 0)
+		fairnessDataList_1 := make([]FairnessData, 0)
 		availableReourcePerNode := []ResourceCapacity{
 			ResourceCapacity{
 				25,
@@ -350,20 +398,100 @@ func main() {
 		} else {
 			fairnessDataList = []FairnessData{fairnessData_1, fairnessData_2, fairnessData_4}
 		}
+		if clk >= 0 && clk < 3 {
+			fairnessDataList_1 = []FairnessData{fairnessData_1, fairnessData_4}
+		} else if clk >= 3 && clk < 5 {
+			fairnessDataList_1 = []FairnessData{fairnessData_1, fairnessData_2, fairnessData_4}
+		} else if clk >= 5 && clk < 10 {
+			fairnessDataList_1 = []FairnessData{fairnessData_1, fairnessData_2, fairnessData_3, fairnessData_4}
+		} else if clk >= 10 && clk < 20 {
+			fairnessDataList_1 = []FairnessData{fairnessData_1, fairnessData_3, fairnessData_4}
+		} else if clk >= 20 && clk < 25 {
+			fairnessDataList_1 = []FairnessData{fairnessData_1, fairnessData_2, fairnessData_3, fairnessData_4}
+		} else {
+			fairnessDataList_1 = []FairnessData{fairnessData_1, fairnessData_2, fairnessData_4}
+		}
 		output := fairnessPlacement(fairnessDataList, availableReourcePerNode, clusterCPUAvailable, clusterMemAvailable)
+		// cpuShare = append(cpuShare, output[0].allocatedCPUFair)
 		// fmt.Printf("output = %v\n", output)
-		cpuShare = append(cpuShare, output[0].allocatedCPUFair / float64(clusterCPUAvailable))
-		
+		maxMinShareVal := maxMinCalculation(fairnessDataList_1, clusterCPUAvailable, clusterMemAvailable)
+		// maxMinShare = append(maxMinShare, maxMinShareVal)
+
+		// Write results
+		if clk >= 0 && clk < 3 {
+			// fairnessDataList = []FairnessData{fairnessData_1, fairnessData_4}
+			cpuShareList[0] = append(cpuShareList[0], output[0].allocatedCPUFair)
+			cpuShareList[1] = append(cpuShareList[1], 0)
+			cpuShareList[2] = append(cpuShareList[2], 0)
+			cpuShareList[3] = append(cpuShareList[3], output[1].allocatedCPUFair)
+			maxMinShareList[0] = append(maxMinShareList[0], maxMinShareVal[0])
+			maxMinShareList[1] = append(maxMinShareList[1], 0)
+			maxMinShareList[2] = append(maxMinShareList[2], 0)
+			maxMinShareList[3] = append(maxMinShareList[3], maxMinShareVal[1])
+		} else if clk >= 3 && clk < 5 {
+			// fairnessDataList = []FairnessData{fairnessData_1, fairnessData_2, fairnessData_4}
+			cpuShareList[0] = append(cpuShareList[0], output[0].allocatedCPUFair)
+			cpuShareList[1] = append(cpuShareList[1], output[1].allocatedCPUFair)
+			cpuShareList[2] = append(cpuShareList[2], 0)
+			cpuShareList[3] = append(cpuShareList[3], output[2].allocatedCPUFair)
+			maxMinShareList[0] = append(maxMinShareList[0], maxMinShareVal[0])
+			maxMinShareList[1] = append(maxMinShareList[1], maxMinShareVal[1])
+			maxMinShareList[2] = append(maxMinShareList[2], 0)
+			maxMinShareList[3] = append(maxMinShareList[3], maxMinShareVal[2])
+		} else if clk >= 5 && clk < 10 {
+			// fairnessDataList = []FairnessData{fairnessData_1, fairnessData_2, fairnessData_3, fairnessData_4}
+			cpuShareList[0] = append(cpuShareList[0], output[0].allocatedCPUFair)
+			cpuShareList[1] = append(cpuShareList[1], output[1].allocatedCPUFair)
+			cpuShareList[2] = append(cpuShareList[2], output[2].allocatedCPUFair)
+			cpuShareList[3] = append(cpuShareList[3], output[3].allocatedCPUFair)
+			maxMinShareList[0] = append(maxMinShareList[0], maxMinShareVal[0])
+			maxMinShareList[1] = append(maxMinShareList[1], maxMinShareVal[1])
+			maxMinShareList[2] = append(maxMinShareList[2], maxMinShareVal[2])
+			maxMinShareList[3] = append(maxMinShareList[3], maxMinShareVal[3])
+		} else if clk >= 10 && clk < 20 {
+			// fairnessDataList = []FairnessData{fairnessData_1, fairnessData_3, fairnessData_4}
+			cpuShareList[0] = append(cpuShareList[0], output[0].allocatedCPUFair)
+			cpuShareList[1] = append(cpuShareList[1], 0)
+			cpuShareList[2] = append(cpuShareList[2], output[1].allocatedCPUFair)
+			cpuShareList[3] = append(cpuShareList[3], output[2].allocatedCPUFair)
+			maxMinShareList[0] = append(maxMinShareList[0], maxMinShareVal[0])
+			maxMinShareList[1] = append(maxMinShareList[1], 0)
+			maxMinShareList[2] = append(maxMinShareList[2], maxMinShareVal[1])
+			maxMinShareList[3] = append(maxMinShareList[3], maxMinShareVal[2])
+		} else if clk >= 20 && clk < 25 {
+			// fairnessDataList = []FairnessData{fairnessData_1, fairnessData_2, fairnessData_3, fairnessData_4}
+			cpuShareList[0] = append(cpuShareList[0], output[0].allocatedCPUFair)
+			cpuShareList[1] = append(cpuShareList[1], output[1].allocatedCPUFair)
+			cpuShareList[2] = append(cpuShareList[2], output[2].allocatedCPUFair)
+			cpuShareList[3] = append(cpuShareList[3], output[3].allocatedCPUFair)
+			maxMinShareList[0] = append(maxMinShareList[0], maxMinShareVal[0])
+			maxMinShareList[1] = append(maxMinShareList[1], maxMinShareVal[1])
+			maxMinShareList[2] = append(maxMinShareList[2], maxMinShareVal[2])
+			maxMinShareList[3] = append(maxMinShareList[3], maxMinShareVal[3])
+		} else {
+			// fairnessDataList = []FairnessData{fairnessData_1, fairnessData_2, fairnessData_4}
+			cpuShareList[0] = append(cpuShareList[0], output[0].allocatedCPUFair)
+			cpuShareList[1] = append(cpuShareList[1], output[1].allocatedCPUFair)
+			cpuShareList[2] = append(cpuShareList[2], 0)
+			cpuShareList[3] = append(cpuShareList[3], output[2].allocatedCPUFair)
+			maxMinShareList[0] = append(maxMinShareList[0], maxMinShareVal[0])
+			maxMinShareList[1] = append(maxMinShareList[1], maxMinShareVal[1])
+			maxMinShareList[2] = append(maxMinShareList[2], 0)
+			maxMinShareList[3] = append(maxMinShareList[3], maxMinShareVal[2])
+		}
+
+
 		var totalDesiredCPU float64
 		for i, _ := range output {
 			totalDesiredCPU += output[i].desiredCPU
 		}
 		// fmt.Printf("totalDesiredCPU = %v\n", totalDesiredCPU)
-		proportionalFairCPU = append(proportionalFairCPU, output[0].desiredCPU / totalDesiredCPU)
+		proportionalFairCPU = append(proportionalFairCPU, clusterCPUAvailable * output[0].desiredCPU / totalDesiredCPU)
 		
 		// fmt.Printf("availableReourcePerNode = %v\n", availableReourcePerNode)
 		// time.Sleep(1 * time.Second)
 	}
-	fmt.Printf("proportionalFairCPU = %v\n", proportionalFairCPU)
-	fmt.Printf("cpuShare = %v\n", cpuShare)
+	// fmt.Printf("proportionalFairCPU = %v\n", proportionalFairCPU)
+	fmt.Printf("cpuShareList = %v\n", cpuShareList)
+	fmt.Printf("maxMinShareList = %v\n", maxMinShareList)
 }
