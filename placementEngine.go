@@ -186,10 +186,10 @@ func main() {
 	fairnessData_2 := FairnessData{ // Func-2
 		desiredPodCountSLO: 5, // int32
 		// desiredPodCountFair: 0, // int32
-		podCPUUsage: 1.0, // float64 // resource usage per pod
+		podCPUUsage: 3.0, // float64 // resource usage per pod
 		// desiredCPU: 0.0, // float64 // desired resource of this function
 		allocatedCPUFair: 0.0, // float64 // fairly allocated resource of this function
-		podMemUsage: 5.0, // float64
+		podMemUsage: 2.0, // float64
 		// desiredMem: 0.0, // float64
 		allocatedMemFair: 0.0, // float64
 		// placementDecision []int
@@ -210,7 +210,7 @@ func main() {
 	fairnessData_4 := FairnessData{ // Func-4
 		desiredPodCountSLO: 2, // int32
 		// desiredPodCountFair: 0, // int32
-		podCPUUsage: 1.0, // float64 // resource usage per pod
+		podCPUUsage: 2.0, // float64 // resource usage per pod
 		// desiredCPU: 0.0, // float64 // desired resource of this function
 		allocatedCPUFair: 0.0, // float64 // fairly allocated resource of this function
 		podMemUsage: 1.0, // float64
@@ -267,9 +267,10 @@ func main() {
 			fairnessDataList_1 = []FairnessData{fairnessData_1, fairnessData_2, fairnessData_4}
 		}
 		output := fairnessPlacement(fairnessDataList, availableReourcePerNode, clusterCPUAvailable, clusterMemAvailable)
-		if clk > 4 && clk <= 6 {
+		if clk > 11 && clk <= 13 {
 			fmt.Printf("* * * * * * * * * * * * * * * * clk = %v * * * * * * * * * * * * * * * * * * * * \n", clk)
 			fmt.Printf("output = %v\n\n", output)
+			fmt.Printf("availableReourcePerNode = %v\n\n", availableReourcePerNode)
 		}
 		// fmt.Printf("* * * * * * * * * * * * * * * * clk = %v * * * * * * * * * * * * * * * * * * * * \n", clk)
 		maxMinShareVal := maxMinCalculation(fairnessDataList_1, clusterCPUAvailable, clusterMemAvailable)
