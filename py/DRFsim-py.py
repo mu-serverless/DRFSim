@@ -1,13 +1,11 @@
 ''' Simulator for Placement Engine '''
 from __future__ import division
 from decimal import *
-from gurobipy import quicksum
-import heapq
-import gurobipy as gp
-from gurobipy import GRB
 import math
 import sys
-from model_def import LP_Models, workload_Init
+from lp_model_def import LP_Models
+from maxmin_model_def import maxmin_Models
+from var_drf_def import DRF_Var
 
 solverName = sys.argv[1]
 
@@ -22,15 +20,15 @@ func_1 = {'desiredPodCountSLO': 6, 'podCPUUsage': 5.0, 'podMemUsage': 1.0, 'func
 func_2 = {'desiredPodCountSLO': 5, 'podCPUUsage': 1.0, 'podMemUsage': 5.0, 'functionName': "fairnessData_2"}
 func_3 = {'desiredPodCountSLO': 5, 'podCPUUsage': 5.0, 'podMemUsage': 1.0, 'functionName': "fairnessData_3"}
 func_4 = {'desiredPodCountSLO': 2, 'podCPUUsage': 1.0, 'podMemUsage': 1.0, 'functionName': "fairnessData_4"}
-func_null = {'desiredPodCountSLO': 0, 'podCPUUsage': 1.0, 'podMemUsage': 1.0, 'functionName': "fairnessData_null"}
+func_null = {'desiredPodCountSLO': 0, 'podCPUUsage': 0.01, 'podMemUsage': 0.01, 'functionName': "fairnessData_null"}
+# func_null = {'desiredPodCountSLO': 0, 'podCPUUsage': 0, 'podMemUsage': 0, 'functionName': "fairnessData_null"}
 
 node_1 = {'CPUCapacity': 25, 'MemCapacity': 10}
 node_2 = {'CPUCapacity': 10, 'MemCapacity': 25}
 node = [node_1, node_2]
 
 for clk in range(total_ticks):
-    # Workload Initialization
-    if clk >= 0 and clk < 3:
+    if clk >= 0 and clk < 3: # Workload Initialization
         func = [func_1, func_null, func_null, func_4]
     elif clk >= 3 and clk < 5:
         func = [func_1, func_2, func_null, func_4]
@@ -43,15 +41,19 @@ for clk in range(total_ticks):
     else:
         func = [func_1, func_2, func_null, func_4]
 
-    # nr, resource_needed, dominant_resource, total_resource, required_uniform_share = workload_Init(func, l, n, m, node_1, node_2)
-    # print(func)
     if solverName[0] == 'L' and solverName[1] == 'P':
         output  = LP_Models(func, l, n, m, node_1, node_2, solverName)
+        print("[t = {}] placed_pods_list: {}".format(clk, output))
     elif solverName == 'maxmin':
-        print("maxmin fairness")
         # output = maxmin_Models(func, l, n, m, node_1, node_2)
-    # elif solverName[:3] == 'drf':
+        cpu_maxmin_alloc, mem_maxmin_alloc = maxmin_Models(func, l, n, m, node_1, node_2)
+        print("[t = {}] cpu_maxmin_alloc: {} \tmem_maxmin_alloc: {}".format(clk, cpu_maxmin_alloc, mem_maxmin_alloc))
+    elif solverName[:3] == 'drf':
         # print("DRF algorithm")
+        # print("\n============== {} cycle =============".format(clk))
+        cpu_drf_alloc, mem_drf_alloc = DRF_Var(func, node, 35, 35, solverName)
+        # exit("Stop at the 1st cycle")
+        print("[t = {}] cpu_drf_alloc: {} \tmem_drf_alloc: {}".format(clk, cpu_drf_alloc, mem_drf_alloc))
     else:
         print('''
             Please select the correct model:
@@ -59,5 +61,4 @@ for clk in range(total_ticks):
                 drf+worstfit drf+alignment drf+berkeley
             ''')
         exit(1)
-    print("placed_pods_list: ", output)
-    
+    # print("[t = {}] placed_pods_list: {}".format(clk, output))
