@@ -70,6 +70,44 @@ func scoreWorstFit(fIndex int, fairnessDataList []FairnessData, availableReource
 	return MaxFloatSlice(nodeScore)
 }
 
+func scoreAlignment(fIndex int, fairnessDataList []FairnessData, availableReourcePerNode []ResourceCapacity, remainingReourcePerNode []ResourceCapacity) (float64, int) {
+	num := len(availableReourcePerNode)
+	nodeScore := make([]float64, num)
+	// fmt.Printf("In scoreWorstFit, remainingReourcePerNode = %v\n", remainingReourcePerNode)
+	for i, _ := range availableReourcePerNode {
+		if remainingReourcePerNode[i].CPUCapacity > 0 && remainingReourcePerNode[i].MemCapacity > 0 { 
+			if remainingReourcePerNode[i].CPUCapacity >= fairnessDataList[fIndex].podCPUUsage && remainingReourcePerNode[i].MemCapacity >= fairnessDataList[fIndex].podMemUsage {
+				nodeScore[i] = (remainingReourcePerNode[i].CPUCapacity * fairnessDataList[fIndex].podCPUUsage) / float64(availableReourcePerNode[i].CPUCapacity * availableReourcePerNode[i].CPUCapacity) + 
+							   (remainingReourcePerNode[i].MemCapacity * fairnessDataList[fIndex].podMemUsage) / float64(availableReourcePerNode[i].MemCapacity * availableReourcePerNode[i].MemCapacity)
+			} else {
+				nodeScore[i] = -1
+			}
+		} else {
+			nodeScore[i] = -1
+		}
+	}
+	return MaxFloatSlice(nodeScore)
+}
+
+func scoreBerkeley(fIndex int, fairnessDataList []FairnessData, availableReourcePerNode []ResourceCapacity, remainingReourcePerNode []ResourceCapacity) (float64, int) {
+	num := len(availableReourcePerNode)
+	nodeScore := make([]float64, num)
+	// fmt.Printf("In scoreWorstFit, remainingReourcePerNode = %v\n", remainingReourcePerNode)
+	for i, _ := range availableReourcePerNode {
+		if remainingReourcePerNode[i].CPUCapacity > 0 && remainingReourcePerNode[i].MemCapacity > 0 { 
+			if remainingReourcePerNode[i].CPUCapacity >= fairnessDataList[fIndex].podCPUUsage && remainingReourcePerNode[i].MemCapacity >= fairnessDataList[fIndex].podMemUsage {
+				nodeScore[i] = (remainingReourcePerNode[i].CPUCapacity - fairnessDataList[fIndex].podCPUUsage) / float64(remainingReourcePerNode[i].CPUCapacity) +
+							   (remainingReourcePerNode[i].MemCapacity - fairnessDataList[fIndex].podMemUsage) / float64(remainingReourcePerNode[i].MemCapacity)
+			} else {
+				nodeScore[i] = -1
+			}
+		} else {
+			nodeScore[i] = -1
+		}
+	}
+	return MaxFloatSlice(nodeScore)
+}
+
 func maxMinCalculation(fairnessDataList []FairnessData, clusterCPUAvailable float64, clusterMemAvailable float64) ([]float64, []float64) {
 	remainingFunctions := len(fairnessDataList)
 	for i, _ := range fairnessDataList { // set the desiredCPU, desiredMem, and remainingPodCount
@@ -183,7 +221,9 @@ func fairnessPlacement(fairnessDataList []FairnessData, availableReourcePerNode 
 			}
 		}
 		_, funcIndex := MinFloatSlice(totalDemand)
-		nodeScore, nodeIndex := scoreWorstFit(funcIndex, fairnessDataList, availableReourcePerNode, remainingReourcePerNode)
+		// nodeScore, nodeIndex := scoreWorstFit(funcIndex, fairnessDataList, availableReourcePerNode, remainingReourcePerNode)
+		// nodeScore, nodeIndex := scoreBerkeley(funcIndex, fairnessDataList, availableReourcePerNode, remainingReourcePerNode)
+		nodeScore, nodeIndex := scoreAlignment(funcIndex, fairnessDataList, availableReourcePerNode, remainingReourcePerNode)
 		if nodeScore == -1 {
 			fairnessDataList[funcIndex].remainingPodCount = 0
 			placementCompleted++
