@@ -4,7 +4,7 @@ import gurobipy as gp
 from gurobipy import GRB
 import math
 
-def workload_Init(func, l, n, m, node_1, node_2):
+def workload_Init(func, l, n, m, node_1, node_2):  
     nr = []
     resource_needed = []
     for i in range(n):
@@ -53,7 +53,14 @@ def workload_Init(func, l, n, m, node_1, node_2):
 
     return a, nr, c, resource_needed, dominant_resource, total_resource, required_uniform_share, nodes_remainings
 
-def LP_Models(func, l, n, m, node_1, node_2, solverName):
+def LP_Models(_func_, l, n, m, node_1, node_2, solverName):
+    func = []
+    for i in range(len(_func_)):
+        if _func_[i]['desiredPodCountSLO'] != 0:
+            func.append(_func_[i])
+    # print("func: ", func)
+    n = len(func)
+
     # Initialize workload
     a, nr, c, resource_needed, dominant_resource, total_resource, required_uniform_share, nodes_remainings = workload_Init(func, l, n, m, node_1, node_2)
     
@@ -112,4 +119,8 @@ def LP_Models(func, l, n, m, node_1, node_2, solverName):
         print('Encountered an attribute error')
         print('Optimization was stopped with status %d' % model.status)
         # do IIS, find infeasible constraints
-    return placed_pods_list
+    output = placed_pods_list
+    for i in range(len(_func_)):
+        if _func_[i]['desiredPodCountSLO'] == 0:
+            output.insert(i, 0)
+    return output

@@ -2,7 +2,7 @@
 from __future__ import division
 from decimal import *
 import math
-import sys
+import sys, time
 from lp_model_def import LP_Models
 from maxmin_model_def import maxmin_Models
 from var_drf_def import DRF_Var
@@ -42,7 +42,9 @@ for clk in range(total_ticks):
         func = [func_1, func_2, func_null, func_4]
 
     if solverName[0] == 'L' and solverName[1] == 'P':
+        tick = time.time()
         output  = LP_Models(func, l, n, m, node_1, node_2, solverName)
+        print("Execution time of {}: {} us".format(solverName, (time.time() - tick) * 1000000))
         print("[t = {}] placed_pods_list: {}".format(clk, output))
     elif solverName == 'maxmin':
         # output = maxmin_Models(func, l, n, m, node_1, node_2)
@@ -51,7 +53,9 @@ for clk in range(total_ticks):
     elif solverName[:3] == 'drf':
         # print("DRF algorithm")
         # print("\n============== {} cycle =============".format(clk))
+        tick = time.time()
         cpu_drf_alloc, mem_drf_alloc = DRF_Var(func, node, 35, 35, solverName)
+        # print("Execution time of {}: {} us".format(solverName, (time.time() - tick) * 1000000))
         # exit("Stop at the 1st cycle")
         print("[t = {}] cpu_drf_alloc: {} \tmem_drf_alloc: {}".format(clk, cpu_drf_alloc, mem_drf_alloc))
     else:
