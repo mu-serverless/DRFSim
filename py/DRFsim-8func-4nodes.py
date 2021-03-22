@@ -12,8 +12,8 @@ solverName = sys.argv[1]
 # Initialize input parameters
 total_ticks = 30
 
-l = 2 # total 2 nodes available
-n = 4 # total 4 functions 
+l = 4 # total 2 nodes available
+n = 8 # total 4 functions 
 m = 2 # 2 kinds of resources
 
 func_1 = {'desiredPodCountSLO': 6, 'podCPUUsage': 5.0, 'podMemUsage': 1.0, 'functionName': "fairnessData_1"}
@@ -25,25 +25,23 @@ func_null = {'desiredPodCountSLO': 0, 'podCPUUsage': 0.01, 'podMemUsage': 0.01, 
 
 node_1 = {'CPUCapacity': 25, 'MemCapacity': 10}
 node_2 = {'CPUCapacity': 10, 'MemCapacity': 25}
-node = [node_1, node_2]
+node = [node_1, node_2, node_1, node_2]
 
 delta = []
 for clk in range(total_ticks):
-    if clk >= 0 and clk < 3: # Workload Initialization
-        func = [func_1, func_null, func_null, func_4]
-    elif clk >= 3 and clk < 5:
-        func = [func_1, func_2, func_null, func_4]
-    elif clk >= 5 and clk < 10:
-        func = [func_1, func_2, func_3, func_4]
-    elif clk >= 10 and clk < 20:
-        func = [func_1, func_null, func_3, func_4]
-    elif clk >= 20 and clk < 25:
-        func = [func_1, func_2, func_3, func_4]
-    else:
-        func = [func_1, func_2, func_null, func_4]
-
-    # func = [func_1, func_2, func_3, func_4, func_1, func_2, func_3, func_4,
-    # 		func_1, func_2, func_1, func_2, func_1, func_2, func_1, func_2]
+    # if clk >= 0 and clk < 3: # Workload Initialization
+    #     func = [func_1, func_null, func_null, func_4]
+    # elif clk >= 3 and clk < 5:
+    #     func = [func_1, func_2, func_null, func_4]
+    # elif clk >= 5 and clk < 10:
+    #     func = [func_1, func_2, func_3, func_4]
+    # elif clk >= 10 and clk < 20:
+    #     func = [func_1, func_null, func_3, func_4]
+    # elif clk >= 20 and clk < 25:
+    #     func = [func_1, func_2, func_3, func_4]
+    # else:
+    #     func = [func_1, func_2, func_null, func_4]
+    func = [func_1, func_2, func_3, func_4, func_1, func_2, func_1, func_2]
     if solverName[0] == 'L' and solverName[1] == 'P':
         tick = time.time()
         output  = LP_Models(func, l, n, m, node, solverName)
@@ -58,7 +56,7 @@ for clk in range(total_ticks):
         # print("DRF algorithm")
         # print("\n============== {} cycle =============".format(clk))
         tick = time.time()
-        cpu_drf_alloc, mem_drf_alloc = DRF_Var(func, node, 35, 35, solverName)
+        cpu_drf_alloc, mem_drf_alloc = DRF_Var(func, node, 70, 70, solverName)
         delta.append((time.time() - tick) * 1000000)
         # print("Execution time of {}: {} us".format(solverName, (time.time() - tick) * 1000000))
         # exit("Stop at the 1st cycle")

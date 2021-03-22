@@ -4,7 +4,7 @@ import gurobipy as gp
 from gurobipy import GRB
 import math
 
-def workload_Init(func, l, n, m, node_1, node_2):  
+def workload_Init(func, l, n, m, node):  
     nr = []
     resource_needed = []
     for i in range(n):
@@ -16,8 +16,11 @@ def workload_Init(func, l, n, m, node_1, node_2):
     a = [([resource_needed[i]] *(nr[i])) for i in range(n)] # Initialize the resource request of each Pod
     # print("pod resource requested for each function is ", a)
 
-    c = list(zip([node_1['CPUCapacity'], node_2['CPUCapacity']], [node_1['MemCapacity'], node_2['MemCapacity']]))# combine cpu and memory to initailize the resource capacity of each node
-    # print("resource on each node is ", c)
+    # c = list(zip([node_1['CPUCapacity'], node_2['CPUCapacity']], [node_1['MemCapacity'], node_2['MemCapacity']]))# combine cpu and memory to initailize the resource capacity of each node
+    c = []
+    for i in range(l):
+        c.append((node[i]['CPUCapacity'], node[i]['MemCapacity']))
+    # print("resource on each node is ", c) 
 
     c_cpu_total = 0
     c_mem_total = 0
@@ -51,9 +54,9 @@ def workload_Init(func, l, n, m, node_1, node_2):
     for i in range(n):
         required_uniform_share.append((dominant_resource[i][0] * minimum_dominant_resource[1])/(dominant_resource[i][1] * minimum_dominant_resource[0]))
 
-    return a, nr, c, resource_needed, dominant_resource, total_resource, required_uniform_share, nodes_remainings
+    return a, nr, c, resource_needed, required_uniform_share, nodes_remainings
 
-def LP_Models(_func_, l, n, m, node_1, node_2, solverName):
+def LP_Models(_func_, l, n, m, node, solverName):
     func = []
     for i in range(len(_func_)):
         if _func_[i]['desiredPodCountSLO'] != 0:
@@ -62,7 +65,7 @@ def LP_Models(_func_, l, n, m, node_1, node_2, solverName):
     n = len(func)
 
     # Initialize workload
-    a, nr, c, resource_needed, dominant_resource, total_resource, required_uniform_share, nodes_remainings = workload_Init(func, l, n, m, node_1, node_2)
+    a, nr, c, resource_needed, required_uniform_share, nodes_remainings = workload_Init(func, l, n, m, node)
     
     # Generate indices for W_rik
     python_list = []
