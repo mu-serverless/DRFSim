@@ -12,7 +12,7 @@ solverName = sys.argv[1]
 # Initialize input parameters
 total_ticks = 30
 
-l = 40 # total 2 nodes available
+l = 40 # total 40 nodes available
 n = 100 * l # total 4 functions 
 m = 2 # 2 kinds of resources
 
@@ -25,23 +25,16 @@ func_null = {'desiredPodCountSLO': 0, 'podCPUUsage': 0.01, 'podMemUsage': 0.01, 
 
 node_1 = {'CPUCapacity': 25, 'MemCapacity': 10}
 node_2 = {'CPUCapacity': 10, 'MemCapacity': 25}
-node = [node_1, node_2, node_1, node_2, node_1, node_2, node_1, node_2, node_1, node_2, node_1, node_2, node_1, node_2, node_1, node_2]
+node = [node_1, node_2, node_1, node_2, node_1, node_2, node_1, node_2,
+        node_1, node_2, node_1, node_2, node_1, node_2, node_1, node_2,
+        node_1, node_2, node_1, node_2, node_1, node_2, node_1, node_2,
+        node_1, node_2, node_1, node_2, node_1, node_2, node_1, node_2,
+        node_1, node_2, node_1, node_2, node_1, node_2, node_1, node_2]
 
 delta = []
 for clk in range(total_ticks):
-    # if clk >= 0 and clk < 3: # Workload Initialization
-    #     func = [func_1, func_null, func_null, func_4]
-    # elif clk >= 3 and clk < 5:
-    #     func = [func_1, func_2, func_null, func_4]
-    # elif clk >= 5 and clk < 10:
-    #     func = [func_1, func_2, func_3, func_4]
-    # elif clk >= 10 and clk < 20:
-    #     func = [func_1, func_null, func_3, func_4]
-    # elif clk >= 20 and clk < 25:
-    #     func = [func_1, func_2, func_3, func_4]
-    # else:
-    #     func = [func_1, func_2, func_null, func_4]
-    func = [func_1, func_2, func_3, func_4, func_1, func_2, func_3, func_4, func_1, func_2, func_3, func_4, func_1, func_2, func_3, func_4, func_1, func_2, func_3, func_4, func_1, func_2, func_3, func_4, func_1, func_2, func_3, func_4, func_1, func_2, func_3, func_4]
+
+    func = [func_1, func_2, func_3, func_4] * 25 * l
     
     if solverName[0] == 'L' and solverName[1] == 'P':
         tick = time.time()
