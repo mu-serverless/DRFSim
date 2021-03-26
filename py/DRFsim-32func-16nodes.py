@@ -12,8 +12,8 @@ solverName = sys.argv[1]
 # Initialize input parameters
 total_ticks = 30
 
-l = 4 # total 2 nodes available
-n = 8 # total 4 functions 
+l = 16 # total 2 nodes available
+n = 32 # total 4 functions 
 m = 2 # 2 kinds of resources
 
 func_1 = {'desiredPodCountSLO': 6, 'podCPUUsage': 5.0, 'podMemUsage': 1.0, 'functionName': "fairnessData_1"}
