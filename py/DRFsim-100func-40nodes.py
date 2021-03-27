@@ -10,10 +10,10 @@ from var_drf_def import DRF_Var
 solverName = sys.argv[1]
 
 # Initialize input parameters
-total_ticks = 30
+total_ticks = 1
 
-l = 40 # total 40 nodes available
-n = 100 * l # total 4 functions 
+l = 10 # total 40 nodes available
+n = 100 * l / 1 * 2  # total 4 functions 
 m = 2 # 2 kinds of resources
 
 func_1 = {'desiredPodCountSLO': 6, 'podCPUUsage': 5.0, 'podMemUsage': 1.0, 'functionName': "fairnessData_1"}
@@ -25,16 +25,13 @@ func_null = {'desiredPodCountSLO': 0, 'podCPUUsage': 0.01, 'podMemUsage': 0.01, 
 
 node_1 = {'CPUCapacity': 25, 'MemCapacity': 10}
 node_2 = {'CPUCapacity': 10, 'MemCapacity': 25}
-node = [node_1, node_2, node_1, node_2, node_1, node_2, node_1, node_2,
-        node_1, node_2, node_1, node_2, node_1, node_2, node_1, node_2,
-        node_1, node_2, node_1, node_2, node_1, node_2, node_1, node_2,
-        node_1, node_2, node_1, node_2, node_1, node_2, node_1, node_2,
-        node_1, node_2, node_1, node_2, node_1, node_2, node_1, node_2]
+
+node = [node_1, node_2] * int(l/2)
 
 delta = []
 for clk in range(total_ticks):
 
-    func = [func_1, func_2, func_3, func_4] * 25 * l
+    func = [func_1, func_2, func_3, func_4] * int(n / 4)
     
     if solverName[0] == 'L' and solverName[1] == 'P':
         tick = time.time()
@@ -50,7 +47,7 @@ for clk in range(total_ticks):
         # print("DRF algorithm")
         # print("\n============== {} cycle =============".format(clk))
         tick = time.time()
-        cpu_drf_alloc, mem_drf_alloc = DRF_Var(func, node, 280, 280, solverName)
+        cpu_drf_alloc, mem_drf_alloc = DRF_Var(func, node, 35*l/2, 35*l/2, solverName)
         delta.append((time.time() - tick) * 1000000)
         # print("Execution time of {}: {} us".format(solverName, (time.time() - tick) * 1000000))
         # exit("Stop at the 1st cycle")

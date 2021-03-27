@@ -56,7 +56,7 @@ for clk in range(total_ticks):
         output  = LP_Models(func, l, n, m, node, solverName)
         delta.append((time.time() - tick) * 1000000)
         # print("Execution time of {}: {} us".format(solverName, (time.time() - tick) * 1000000))
-        # print("[t = {}] placed_pods_list: {}".format(clk, output))
+        print("[t = {}] placed_pods_list: {}".format(clk, output))
     elif solverName == 'maxmin':
         # output = maxmin_Models(func, l, n, m, node_1, node_2)
         cpu_maxmin_alloc, mem_maxmin_alloc = maxmin_Models(func, l, n, m, node_1, node_2)
