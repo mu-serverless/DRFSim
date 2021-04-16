@@ -18,10 +18,10 @@ l = 40 # total 40 nodes available
 n = 100
 m = 2 # 2 kinds of resources
 
-func_1 = {'desiredPodCountSLO': 6, 'podCPUUsage': 5.0, 'podMemUsage': 1.0, 'functionName': "fairnessData_1"}
-func_2 = {'desiredPodCountSLO': 5, 'podCPUUsage': 1.0, 'podMemUsage': 5.0, 'functionName': "fairnessData_2"}
-func_3 = {'desiredPodCountSLO': 5, 'podCPUUsage': 5.0, 'podMemUsage': 1.0, 'functionName': "fairnessData_3"}
-func_4 = {'desiredPodCountSLO': 2, 'podCPUUsage': 1.0, 'podMemUsage': 1.0, 'functionName': "fairnessData_4"}
+func_1 = {'desiredPodCountSLO': 6, 'podCPUUsage': 5.0, 'podMemUsage': 3.0, 'functionName': "fairnessData_1"}
+func_2 = {'desiredPodCountSLO': 5, 'podCPUUsage': 2.0, 'podMemUsage': 5.0, 'functionName': "fairnessData_2"}
+func_3 = {'desiredPodCountSLO': 5, 'podCPUUsage': 4.0, 'podMemUsage': 1.0, 'functionName': "fairnessData_3"}
+func_4 = {'desiredPodCountSLO': 2, 'podCPUUsage': 2.0, 'podMemUsage': 2.0, 'functionName': "fairnessData_4"}
 func_null = {'desiredPodCountSLO': 0, 'podCPUUsage': 0.01, 'podMemUsage': 0.01, 'functionName': "fairnessData_null"}
 # func_null = {'desiredPodCountSLO': 0, 'podCPUUsage': 0, 'podMemUsage': 0, 'functionName': "fairnessData_null"}
 
@@ -43,15 +43,15 @@ else:
     scale = 1
     exit("n is not allowed")
 
-node_1 = {'CPUCapacity': 25 * scale, 'MemCapacity': 10 * scale}
-node_2 = {'CPUCapacity': 10 * scale, 'MemCapacity': 25 * scale}
+node_1 = {'CPUCapacity': 25 * scale, 'MemCapacity': 15 * scale}
+node_2 = {'CPUCapacity': 20 * scale, 'MemCapacity': 10 * scale}
 cpu = node_1['CPUCapacity'] + node_2['CPUCapacity']
 mem = node_1['MemCapacity'] + node_2['MemCapacity']
 
 node = [node_1, node_2] * int(l / 2)
 
 delta = []
-algs = ['maxmin', 'drf+worstfit', 'drf+berkeley', 'drf+alignment', 'LP1'] 
+algs = ['maxmin', 'drf+worstfit', 'drf+berkeley', 'drf+alignment'] 
 # algs = ['maxmin'] 
 maxmin_cpu_result = []
 maxmin_mem_result = []

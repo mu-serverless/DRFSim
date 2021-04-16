@@ -20,12 +20,12 @@ m = 2 # 2 kinds of resources
 func_1 = {'desiredPodCountSLO': 6, 'podCPUUsage': 5.0, 'podMemUsage': 1.0, 'functionName': "fairnessData_1"}
 func_2 = {'desiredPodCountSLO': 5, 'podCPUUsage': 1.0, 'podMemUsage': 5.0, 'functionName': "fairnessData_2"}
 func_3 = {'desiredPodCountSLO': 5, 'podCPUUsage': 5.0, 'podMemUsage': 1.0, 'functionName': "fairnessData_3"}
-func_4 = {'desiredPodCountSLO': 2, 'podCPUUsage': 1.0, 'podMemUsage': 1.0, 'functionName': "fairnessData_4"}
+func_4 = {'desiredPodCountSLO': 2, 'podCPUUsage': 1.0, 'podMemUsage': 5.0, 'functionName': "fairnessData_4"}
 func_null = {'desiredPodCountSLO': 0, 'podCPUUsage': 0.01, 'podMemUsage': 0.01, 'functionName': "fairnessData_null"}
 # func_null = {'desiredPodCountSLO': 0, 'podCPUUsage': 0, 'podMemUsage': 0, 'functionName': "fairnessData_null"}
 
 node_1 = {'CPUCapacity': 25, 'MemCapacity': 10}
-node_2 = {'CPUCapacity': 10, 'MemCapacity': 25}
+node_2 = {'CPUCapacity': 25, 'MemCapacity': 10}
 node = [node_1, node_2]
 
 delta = []
@@ -43,24 +43,21 @@ for clk in range(total_ticks):
     else:
         func = [func_1, func_2, func_null, func_4]
 
-    # func = [func_1, func_2, func_3, func_4, func_1, func_2, func_3, func_4,
-    		# func_1, func_2, func_1, func_2, func_1, func_2, func_1, func_2]
-
-    # func = [func_1, func_2, func_3, func_4, func_1, func_2, func_3, func_4]
-
-    # func = [func_1, func_2, func_3, func_4, func_3, func_4]
-
-    # func = [func_1, func_2, func_3, func_4]
-
     if solverName[0] == 'L' and solverName[1] == 'P':
         tick = time.time()
         output  = LP_Models(func, l, n, m, node, solverName)
         delta.append((time.time() - tick) * 1000000)
         # print("Execution time of {}: {} us".format(solverName, (time.time() - tick) * 1000000))
-        print("[t = {}] placed_pods_list: {}".format(clk, output))
+        cpu_lp_alloc = [0] * len(output) 
+        mem_lp_alloc = [0] * len(output)
+        for i in range(len(output)):
+            cpu_lp_alloc[i] = output[i] * func[i]['podCPUUsage']
+            mem_lp_alloc[i] = output[i] * func[i]['podMemUsage']
+        # print("[t = {}] placed_pods_list: {}".format(clk, output))
+        print("[t = {}] cpu_lp_alloc: {} \tmem_lp_alloc: {}".format(clk, cpu_lp_alloc, mem_lp_alloc))
     elif solverName == 'maxmin':
         # output = maxmin_Models(func, l, n, m, node_1, node_2)
-        cpu_maxmin_alloc, mem_maxmin_alloc = maxmin_Models(func, l, n, m, node_1, node_2)
+        cpu_maxmin_alloc, mem_maxmin_alloc = maxmin_Models(func, l, n, m, node)
         print("[t = {}] cpu_maxmin_alloc: {} \tmem_maxmin_alloc: {}".format(clk, cpu_maxmin_alloc, mem_maxmin_alloc))
     elif solverName[:3] == 'drf':
         # print("DRF algorithm")
@@ -70,7 +67,7 @@ for clk in range(total_ticks):
         delta.append((time.time() - tick) * 1000000)
         # print("Execution time of {}: {} us".format(solverName, (time.time() - tick) * 1000000))
         # exit("Stop at the 1st cycle")
-        # print("[t = {}] cpu_drf_alloc: {} \tmem_drf_alloc: {}".format(clk, cpu_drf_alloc, mem_drf_alloc))
+        print("[t = {}] cpu_drf_alloc: {} \tmem_drf_alloc: {}".format(clk, cpu_drf_alloc, mem_drf_alloc))
     elif solverName == 'efficient':
         tick = time.time()
         output = Efficient_Models(func, l, n, m, node)
@@ -97,9 +94,9 @@ for clk in range(total_ticks):
         for i in range(len(output)):
             unmet_cpu[i] = cpu_slo[i] - cpu_lp_alloc[i]
             unmet_mem[i] = mem_slo[i] - mem_lp_alloc[i]
-        print("[t = {}] remaining_cpu: {} \tremaining_mem: {}".format(clk, remaining_cpu, remaining_mem))
-        print("[t = {}] unmet_cpu: {} \tunmet_mem: {}".format(clk, unmet_cpu, unmet_mem))
-        print("")
+        # print("[t = {}] remaining_cpu: {} \tremaining_mem: {}".format(clk, remaining_cpu, remaining_mem))
+        # print("[t = {}] unmet_cpu: {} \tunmet_mem: {}".format(clk, unmet_cpu, unmet_mem))
+        # print("")
     else:
         print('''
             Please select the correct model:
@@ -108,4 +105,4 @@ for clk in range(total_ticks):
             ''')
         exit(1)
     # print("[t = {}] placed_pods_list: {}".format(clk, output))
-print("Average completion time (us): ", sum(delta)/len(delta))
+# print("Average completion time (us): ", sum(delta)/len(delta))
