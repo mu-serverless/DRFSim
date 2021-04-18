@@ -81,6 +81,7 @@ def LP_Models(_func_, l, n, m, node, solverName):
             env.setParam('OutputFlag', 0)
             env.start()
             with gp.Model(env=env) as model:
+                # model.Params.Threads = 1
                 # model = gp.Model() # Create a new model
                 w = model.addVars(w_indices, vtype = GRB.BINARY, name = 'pod_matrix') # Create variables
                 # Set objective
