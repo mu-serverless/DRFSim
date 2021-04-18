@@ -10,14 +10,25 @@ from var_drf_def import DRF_Var
 from wrkGen import wrk_generator
 
 # Initialize input parameters
-total_ticks = 40
+total_ticks = 1000
 
 l = 40 # total 40 nodes available
-n = 100
+# n = 200
+n = int(sys.argv[1])
 m = 2 # 2 kinds of resources
 
 delta = []
-algs = ['maxmin', 'drf+worstfit', 'drf+berkeley', 'drf+alignment'] 
+# algs = ['maxmin', 'drf+worstfit', 'drf+berkeley', 'drf+alignment']
+if sys.argv[2] == 'drf+worstfit':
+    algs = ['maxmin', 'drf+worstfit']
+elif sys.argv[2] == 'drf+berkeley':
+    algs = ['maxmin', 'drf+berkeley']
+elif sys.argv[2] == 'drf+alignment':
+    algs = ['maxmin', 'drf+alignment']
+elif sys.argv[2] == 'LP1':
+    algs = ['maxmin', 'LP1']
+elif sys.argv[2] == 'LP2':
+    algs = ['maxmin', 'LP2']
 # algs = ['maxmin'] 
 # maxmin_cpu_result = []
 # maxmin_mem_result = []
@@ -38,6 +49,8 @@ cpu_allocation_result = {'maxmin': [], 'drf+worstfit': [], 'drf+berkeley': [], '
 mem_allocation_result = {'maxmin': [], 'drf+worstfit': [], 'drf+berkeley': [], 'drf+alignment': [], 'lp1': [], 'lp2': [], 'efficient': []}
 
 for clk in range(total_ticks):
+    if clk % 50 == 0:
+        print("clk: ", clk)
     node, func = wrk_generator(l, n, m, clk)
     cpu = 0
     mem = 0
@@ -148,28 +161,29 @@ for clk in range(total_ticks):
         # print("[t = {}] placed_pods_list: {}".format(clk, output))
     # print("Average completion time (milisecond): ", sum(delta)/len(delta))
 
-# print(maxmin_cpu_result)
-# print("")
-# print(maxmin_mem_result)
-# print("")
-# print(drf_worstfit_cpu_result)
-# print("")
-# print(drf_worstfit_mem_result)
-# print("")
-# print(drf_berkeley_cpu_result)
-# print("")
-# print(drf_berkeley_mem_result)
-# print("")
-# print(drf_alignment_cpu_result)
-# print("")
-# print(drf_alignment_mem_result)
-# print("")
-# print(lp1_cpu_result)
-# print("")
-# print(lp1_mem_result)
-# print("")
+
+cpu_unfairness_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'lp1': 0, 'lp2': 0}
+mem_unfairness_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'lp1': 0, 'lp2': 0}
+if sys.argv[2] == 'drf+worstfit':
+    candidates = ['drf+worstfit']
+elif sys.argv[2] == 'drf+berkeley':
+    candidates = ['drf+berkeley']
+elif sys.argv[2] == 'drf+alignment':
+    candidates = ['drf+alignment']
+for i in range(total_ticks):
+    cpu_tmp = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'lp1': 0, 'lp2': 0}
+    mem_tmp = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'lp1': 0, 'lp2': 0}
+    for j in range(n):
+        for k in candidates:
+            cpu_tmp[k] = cpu_tmp[k] + abs(cpu_allocation_result['maxmin'][i][j] - cpu_allocation_result[k][i][j])
+            mem_tmp[k] = mem_tmp[k] + abs(mem_allocation_result['maxmin'][i][j] - mem_allocation_result[k][i][j])
+    for p in candidates:
+        cpu_unfairness_over_time[p] = cpu_unfairness_over_time[p] + cpu_tmp[p]
+        mem_unfairness_over_time[p] = mem_unfairness_over_time[p] + mem_tmp[p]
+print("cpu_unfairness_over_time: {}, mem_unfairness_over_time: {}".format(cpu_unfairness_over_time, mem_unfairness_over_time))
 
 # Calculate degree of unfairness
+'''
 cpu_unfairness_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'lp1': 0, 'lp2': 0}
 mem_unfairness_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'lp1': 0, 'lp2': 0}
 candidates = ['drf+worstfit', 'drf+berkeley', 'drf+alignment']
@@ -184,6 +198,7 @@ for i in range(total_ticks):
         cpu_unfairness_over_time[p] = cpu_unfairness_over_time[p] + cpu_tmp[p]
         mem_unfairness_over_time[p] = mem_unfairness_over_time[p] + mem_tmp[p]
 print("cpu_unfairness_over_time: {}, mem_unfairness_over_time: {}".format(cpu_unfairness_over_time, mem_unfairness_over_time))
+'''
 
 # Calculate degree of inefficiency
 '''
