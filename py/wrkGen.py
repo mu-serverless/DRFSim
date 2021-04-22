@@ -78,4 +78,4 @@ def wrk_generator(l, n, m, clk):
         tmp = {'desiredPodCountSLO': nr[i], 'podCPUUsage': resource_needed[i][0], 'podMemUsage': resource_needed[i][1]}
         func.append(tmp)
 
-    return node, func
+    return node, func, total_requested_cpu, total_requested_mem

@@ -63,7 +63,7 @@ def Efficient_Models(_func_, l, n, m, node):
             env.start()
             with gp.Model(env = env) as model:
                 # model = gp.Model() # Create a new model
-                model.Params.Threads = 1
+                # model.Params.Threads = 1
                 w = model.addVars(w_indices, vtype = GRB.BINARY, name = 'pod_matrix') # Create variables
                 # Set objective
                 # LP1
