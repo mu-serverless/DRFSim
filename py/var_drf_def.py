@@ -3,7 +3,7 @@ from decimal import *
 import heapq
 import random
 import math
-from math import gcd
+# from math import gcd
 import numpy as np
 import time
 
