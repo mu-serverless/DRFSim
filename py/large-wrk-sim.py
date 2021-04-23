@@ -10,7 +10,7 @@ from var_drf_def import DRF_Var
 from wrkGen import wrk_generator
 
 # Initialize input parameters
-total_ticks = 500
+total_ticks = 1
 
 l = 10 # total 40 nodes available
 # n = 200
@@ -36,6 +36,8 @@ elif sys.argv[2] == 'efficient-drf+alignment':
     algs = ['efficient', 'drf+alignment']
 elif sys.argv[2] == 'efficient-LP1':
     algs = ['efficient', 'LP1']
+elif sys.argv[2] == 'efficient-LP2':
+    algs = ['efficient', 'LP2']
 
 cpu_allocation_result = {'maxmin': [], 'drf+worstfit': [], 'drf+berkeley': [], 'drf+alignment': [], 'LP1': [], 'LP2': [], 'efficient': []}
 mem_allocation_result = {'maxmin': [], 'drf+worstfit': [], 'drf+berkeley': [], 'drf+alignment': [], 'LP1': [], 'LP2': [], 'efficient': []}
@@ -174,6 +176,8 @@ elif sys.argv[2] == 'efficient-drf+alignment':
     candidates = ['drf+alignment']
 elif sys.argv[2] == 'efficient-LP1':
     candidates = ['LP1']
+elif sys.argv[2] == 'efficient-LP2':
+    candidates = ['LP2']
 for i in range(total_ticks):
     cpu_tmp = {'efficient': 0, 'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0}
     mem_tmp = {'efficient': 0, 'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0}
