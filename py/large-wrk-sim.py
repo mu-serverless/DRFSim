@@ -7,6 +7,7 @@ from lp_model_def import LP_Models
 from efficient_model import Efficient_Models
 from maxmin_model_def import maxmin_Models
 from var_drf_def import DRF_Var
+from kubernetes_sche_def import Kubernetes_sche
 from wrkGen import wrk_generator
 
 # Initialize input parameters
@@ -28,6 +29,8 @@ elif sys.argv[2] == 'LP1':
     algs = ['maxmin', 'LP1']
 elif sys.argv[2] == 'LP2':
     algs = ['maxmin', 'LP2']
+elif sys.argv[2] == 'k8s':
+    algs = ['maxmin', 'k8s']
 elif sys.argv[2] == 'efficient-drf+worstfit':
     algs = ['efficient', 'drf+worstfit']
 elif sys.argv[2] == 'efficient-drf+berkeley':
@@ -38,9 +41,11 @@ elif sys.argv[2] == 'efficient-LP1':
     algs = ['efficient', 'LP1']
 elif sys.argv[2] == 'efficient-LP2':
     algs = ['efficient', 'LP2']
+elif sys.argv[2] == 'efficient-k8s':
+    algs = ['efficient', 'k8s']
 
-cpu_allocation_result = {'maxmin': [], 'drf+worstfit': [], 'drf+berkeley': [], 'drf+alignment': [], 'LP1': [], 'LP2': [], 'efficient': []}
-mem_allocation_result = {'maxmin': [], 'drf+worstfit': [], 'drf+berkeley': [], 'drf+alignment': [], 'LP1': [], 'LP2': [], 'efficient': []}
+cpu_allocation_result = {'maxmin': [], 'drf+worstfit': [], 'drf+berkeley': [], 'drf+alignment': [], 'LP1': [], 'LP2': [], 'efficient': [], 'k8s': []}
+mem_allocation_result = {'maxmin': [], 'drf+worstfit': [], 'drf+berkeley': [], 'drf+alignment': [], 'LP1': [], 'LP2': [], 'efficient': [], 'k8s': []}
 
 delta = []
 cpu_request = [0] * total_ticks
@@ -129,6 +134,13 @@ for clk in range(total_ticks):
             cpu_allocation_result['efficient'].append(cpu_lp_alloc)
             mem_allocation_result['efficient'].append(mem_lp_alloc)
 
+        elif solverName == 'k8s':
+            tick = time.time()
+            cpu_drf_alloc, mem_drf_alloc = Kubernetes_sche(func, node)
+            delta.append((time.time() - tick) * 1)
+            cpu_allocation_result['k8s'].append(cpu_drf_alloc)
+            mem_allocation_result['k8s'].append(mem_drf_alloc)
+
         else:
             print('''
                 Please select the correct model:
@@ -139,9 +151,9 @@ for clk in range(total_ticks):
         # print("[t = {}] placed_pods_list: {}".format(clk, output))
 # print("Average completion time (second): ", sum(delta)/len(delta))
 
-'''
-cpu_unfairness_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0}
-mem_unfairness_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0}
+
+cpu_unfairness_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0, 'k8s': 0}
+mem_unfairness_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0, 'k8s': 0}
 if sys.argv[2] == 'drf+worstfit':
     candidates = ['drf+worstfit']
 elif sys.argv[2] == 'drf+berkeley':
@@ -152,9 +164,11 @@ elif sys.argv[2] == 'LP1':
     candidates = ['LP1']
 elif sys.argv[2] == 'LP2':
     candidates = ['LP2']
+elif sys.argv[2] == 'k8s':
+    candidates = ['k8s']
 for i in range(total_ticks):
-    cpu_tmp = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0}
-    mem_tmp = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0}
+    cpu_tmp = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0, 'k8s': 0}
+    mem_tmp = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0, 'k8s': 0}
     for j in range(n):
         for k in candidates:
             cpu_tmp[k] = cpu_tmp[k] + abs(cpu_allocation_result['maxmin'][i][j] - cpu_allocation_result[k][i][j])
@@ -163,11 +177,13 @@ for i in range(total_ticks):
         cpu_unfairness_over_time[p] = cpu_unfairness_over_time[p] + cpu_tmp[p]
         mem_unfairness_over_time[p] = mem_unfairness_over_time[p] + mem_tmp[p]
 print("cpu_unfairness_over_time: {},\n mem_unfairness_over_time: {}".format(cpu_unfairness_over_time, mem_unfairness_over_time))
+
+
 '''
-cpu_inefficiency_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0}
-mem_inefficiency_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0}
-cpu_unmet_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0}
-mem_unmet_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0}
+cpu_inefficiency_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0, 'k8s': 0}
+mem_inefficiency_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0, 'k8s': 0}
+cpu_unmet_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0, 'k8s': 0}
+mem_unmet_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0, 'k8s': 0}
 if sys.argv[2] == 'efficient-drf+worstfit':
     candidates = ['drf+worstfit']
 elif sys.argv[2] == 'efficient-drf+berkeley':
@@ -178,9 +194,11 @@ elif sys.argv[2] == 'efficient-LP1':
     candidates = ['LP1']
 elif sys.argv[2] == 'efficient-LP2':
     candidates = ['LP2']
+elif sys.argv[2] == 'efficient-k8s':
+    candidates = ['k8s']
 for i in range(total_ticks):
-    cpu_tmp = {'efficient': 0, 'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0}
-    mem_tmp = {'efficient': 0, 'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0}
+    cpu_tmp = {'efficient': 0, 'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0, 'k8s': 0}
+    mem_tmp = {'efficient': 0, 'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0, 'k8s': 0}
     for j in range(n):
         for k in candidates:
             cpu_tmp[k] = cpu_tmp[k] + cpu_allocation_result[k][i][j]
@@ -192,8 +210,10 @@ for i in range(total_ticks):
         mem_inefficiency_over_time[p] = mem_inefficiency_over_time[p] + abs(mem_tmp['efficient'] - mem_tmp[p])
         cpu_unmet_over_time[p] = cpu_unmet_over_time[p] + abs(cpu_request[i] - cpu_tmp[p])
         mem_unmet_over_time[p] = mem_unmet_over_time[p] + abs(mem_request[i] - mem_tmp[p])
-# print("cpu_inefficiency_over_time: {},\n mem_inefficiency_over_time: {}".format(cpu_inefficiency_over_time, mem_inefficiency_over_time))
+print("cpu_inefficiency_over_time: {},\n mem_inefficiency_over_time: {}".format(cpu_inefficiency_over_time, mem_inefficiency_over_time))
 print("cpu_unmet_over_time: {},\n mem_unmet_over_time: {}".format(cpu_unmet_over_time, mem_unmet_over_time))
+'''
+
 # Calculate degree of unfairness
 '''
 cpu_unfairness_over_time = {'drf+worstfit': 0, 'drf+berkeley': 0, 'drf+alignment': 0, 'LP1': 0, 'LP2': 0}
