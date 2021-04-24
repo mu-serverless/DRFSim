@@ -35,28 +35,9 @@ def workload_Init(func, l, n, m, node):
     minimum_dominant_resource = [resource_needed[0][0], c_cpu_total] # first is the amount of required dominant resource, second is total resource for that type of resource
     nodes_remainings = c[:]
 
-    for i in range(n): # calculate the dominant resource for each function
-        cpu_share = resource_needed[i][0]/c_cpu_total
-        mem_share = resource_needed[i][1]/c_mem_total
-        if (cpu_share >= mem_share):
-            dominant_resource_flags.append(0)
-            dominant_resource.append([resource_needed[i][0], c_cpu_total])    
-            if minimum_dominant_resource[0]/minimum_dominant_resource[1] > cpu_share:
-                minimum_dominant_resource = [resource_needed[i][0], c_cpu_total]
-        else:
-            dominant_resource_flags.append(1)
-            dominant_resource.append([resource_needed[i][1], c_mem_total])
-            if minimum_dominant_resource[0]/minimum_dominant_resource[1] > mem_share:
-                minimum_dominant_resource = [resource_needed[i][1], c_mem_total]
+    return a, nr, c, resource_needed, nodes_remainings
 
-    # Calcuate dr for each function
-    required_uniform_share = []
-    for i in range(n):
-        required_uniform_share.append((dominant_resource[i][0] * minimum_dominant_resource[1])/(dominant_resource[i][1] * minimum_dominant_resource[0]))
-
-    return a, nr, c, resource_needed, required_uniform_share, nodes_remainings
-
-def LP_Models(_func_, l, n, m, node, solverName):
+def Efficient_Models(_func_, l, n, m, node):
     func = []
     for i in range(len(_func_)):
         if _func_[i]['desiredPodCountSLO'] != 0:
@@ -65,7 +46,7 @@ def LP_Models(_func_, l, n, m, node, solverName):
     n = len(func)
 
     # Initialize workload
-    a, nr, c, resource_needed, required_uniform_share, nodes_remainings = workload_Init(func, l, n, m, node)
+    a, nr, c, resource_needed, nodes_remainings = workload_Init(func, l, n, m, node)
     
     # Generate indices for W_rik
     python_list = []
@@ -80,23 +61,18 @@ def LP_Models(_func_, l, n, m, node, solverName):
         with gp.Env(empty=True) as env:
             env.setParam('OutputFlag', 0)
             env.start()
-            with gp.Model(env=env) as model:
-                # model.Params.Threads = 1
+            with gp.Model(env = env) as model:
                 # model = gp.Model() # Create a new model
+                # model.Params.Threads = 1
                 w = model.addVars(w_indices, vtype = GRB.BINARY, name = 'pod_matrix') # Create variables
                 # Set objective
-                if solverName == "LP1":
-                    # LP1
-                    model.setObjective(quicksum(quicksum(quicksum(w[i, r, k]/(math.pow(2, required_uniform_share[r]*(k+1))) for k in range(nr[r])) for r in range(n)) for i in range(l)), GRB.MAXIMIZE)
-                elif solverName == "LP2":
-                    # LP2
-                    model.setObjective(quicksum(quicksum(quicksum(w[i, r, k]/(required_uniform_share[r]*(k+1)) for k in range(nr[r])) for r in range(n)) for i in range(l)), GRB.MAXIMIZE)
-                elif solverName == "LP3":
-                    # LP3
-                    model.setObjective(quicksum(quicksum(quicksum(w[i, r, k]/(math.pow(required_uniform_share[r]*(k+1),2)) for k in range(nr[r])) for r in range(n)) for i in range(l)), GRB.MAXIMIZE)
-                else:
-                    print("No matched model")
-                    exit(1)
+                # LP1
+                model.setObjective(quicksum(quicksum(quicksum(w[i, r, k] for k in range(nr[r])) for r in range(n)) for i in range(l)), GRB.MAXIMIZE)
+                # LP2
+                # model.setObjective(quicksum(quicksum(quicksum(w[i, r, k]/(required_uniform_share[r]*(k+1)) for k in range(nr[r])) for r in range(n)) for i in range(l)), GRB.MAXIMIZE)
+                # LP3
+                # model.setObjective(quicksum(quicksum(quicksum(w[i, r, k]/(math.pow(required_uniform_share[r]*(k+1),2)) for k in range(nr[r])) for r in range(n)) for i in range(l)), GRB.MAXIMIZE)
+
                 # Add constraint: pack each Pod in exactly one node
                 model.addConstrs((quicksum(w[i, r, k] for i in range(l)) <= 1 for r in range(n)
                                                                                for k in range(nr[r])), "c0")

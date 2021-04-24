@@ -3,7 +3,7 @@ from decimal import *
 import heapq
 import random
 import math
-from math import gcd
+# from math import gcd
 import numpy as np
 import time
 
@@ -106,6 +106,7 @@ def DRF_Var(func, availableReourcePerNode, clusterCPU, clusterMem, solverName):
         if fairnessDataList[i]['remainingPodCount'] <= 0:
             placementCompleted = placementCompleted + 1
 
+    tick = time.time()
     while 1:
         # print("placementCompleted: ",placementCompleted)
         if placementCompleted == num:
@@ -158,6 +159,7 @@ def DRF_Var(func, availableReourcePerNode, clusterCPU, clusterMem, solverName):
         remainingReourcePerNode[nodeIndex]['CPUCapacity'] -= fairnessDataList[funcIndex]['podCPUUsage']
         remainingReourcePerNode[nodeIndex]['MemCapacity'] -= fairnessDataList[funcIndex]['podMemUsage']
         # print("fairnessDataList[{}]['placementDecision']: {}".format(1, fairnessDataList[1]['placementDecision']))
+    delta = (time.time() - tick) * 1
 
     for i in range(len(fairnessDataList)): # set the desiredPodCountFair
         fairnessDataList[i]['desiredPodCountFair'] = int(math.ceil(fairnessDataList[i]['allocatedCPUFair'] / fairnessDataList[i]['podCPUUsage']))
@@ -168,4 +170,4 @@ def DRF_Var(func, availableReourcePerNode, clusterCPU, clusterMem, solverName):
         cpu_drf_alloc[i] = fairnessDataList[i]['desiredPodCountFair'] * fairnessDataList[i]['podCPUUsage']
         mem_drf_alloc[i] = fairnessDataList[i]['desiredPodCountFair'] * fairnessDataList[i]['podMemUsage']
         # print("fairnessDataList[{}]['placementDecision']: {}".format(i, fairnessDataList[i]['placementDecision']))
-    return cpu_drf_alloc, mem_drf_alloc
+    return cpu_drf_alloc, mem_drf_alloc, delta
